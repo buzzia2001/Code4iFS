@@ -27,6 +27,8 @@
   "command.sendToMessageQueue.title": "Invia messaggio a Message Queue",
   "command.uploadSavf.title": "Carica Save File",
   "command.dspobj.title": "Informazioni oggetto",
+  "command.dspmsgQsysopr.title": "Visualizza messaggi QSYSOPR",
+  "command.dspobjDetailed.title": "Visualizza informazioni oggetto (Dettagliato)",
   "description": "Browser del file system per IBM i QSYS",
   "displayName": "IBM i FileSystem"
 }

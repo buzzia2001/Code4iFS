@@ -27,6 +27,8 @@
   "command.sendToMessageQueue.title": "Envoyer un message à la file de messages",
   "command.uploadSavf.title": "Télécharger le fichier de sauvegarde",
   "command.dspobj.title": "Informations sur l'objet",
+  "command.dspmsgQsysopr.title": "Afficher les messages QSYSOPR",
+  "command.dspobjDetailed.title": "Afficher les informations sur l'objet (Détaillé)",
   "description": "Fournisseur de système de fichiers pour IBM i QSYS",
   "displayName": "IBM i FileSystem"
 }

@@ -56,8 +56,29 @@ export default class ObjectProvider implements vscode.CustomEditorProvider<Base>
   public static async refreshDocument(uri: vscode.Uri): Promise<void> {
     const entry = ObjectProvider._documentPanels.get(uri.toString());
     if (entry) {
+      console.log('[refreshDocument] Starting refresh for:', uri.toString());
+      
+      // First, tell the webview to save its current state with the restore flag
+      // This must happen BEFORE we update the HTML
+      console.log('[refreshDocument] Sending saveStateForRestore message to webview');
+      await entry.panel.webview.postMessage({
+        command: 'saveStateForRestore'
+      });
+      
+      // Give the webview time to process the message and save state
+      console.log('[refreshDocument] Waiting 100ms for state to be saved');
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Now fetch new data
+      console.log('[refreshDocument] Fetching new data');
       await entry.document.fetch();
+      
+      // Update HTML - the state is already saved with isSearchRestore flag
+      console.log('[refreshDocument] Updating webview HTML');
       entry.panel.webview.html = generatePage(entry.document.generateHTML());
+      console.log('[refreshDocument] Refresh complete');
+    } else {
+      console.log('[refreshDocument] No entry found for:', uri.toString());
     }
   }
 
@@ -212,7 +233,7 @@ export default class ObjectProvider implements vscode.CustomEditorProvider<Base>
           // Re-fetch only searchable data (avoids reloading all tabs in multi-tab documents)
           await document.fetchSearchData();
           
-          // Re-render the view
+          // Re-render the view (state already saved by search/pagination script in tools.ts)
           webviewPanel.webview.html = generatePage(document.generateHTML());
           return;
         }
@@ -229,6 +250,13 @@ export default class ObjectProvider implements vscode.CustomEditorProvider<Base>
         }
 
         if (actionResult.rerender) {
+          console.log('[handleAction] Rerender requested, saving state first');
+          // For rerender after actions, we need to save state first
+          await webviewPanel.webview.postMessage({
+            command: 'saveStateForRestore'
+          });
+          await new Promise(resolve => setTimeout(resolve, 100));
+          console.log('[handleAction] Updating webview HTML after action');
           webviewPanel.webview.html = generatePage(document.generateHTML());
         }
       });

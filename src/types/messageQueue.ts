@@ -315,9 +315,9 @@ export default class Msgq extends Base {
           FROM_USER,
           FROM_JOB,
           MESSAGE_SECOND_LEVEL_TEXT
-        FROM TABLE(QSYS2.MESSAGE_QUEUE_INFO(QUEUE_NAME => '${this.name}', QUEUE_LIBRARY => '${this.library}' ))
+        FROM TABLE(QSYS2.MESSAGE_QUEUE_INFO(QUEUE_NAME => '${this.name}', QUEUE_LIBRARY => '${this.library}' )) x
         ${whereClause}
-        ORDER BY MESSAGE_TIMESTAMP DESC
+        ORDER BY x.MESSAGE_TIMESTAMP DESC
         LIMIT ${this.itemsPerPage} OFFSET ${offset}`,
         'QSYS2',
         'MESSAGE_QUEUE_INFO',

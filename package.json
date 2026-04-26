@@ -276,6 +276,18 @@
         "command": "vscode-ibmi-fs.showFsActionsMenu",
         "title": "Show FS Actions Menu",
         "category": "FS Actions"
+      },
+      {
+        "command": "vscode-ibmi-fs.dspmsgQsysopr",
+        "title": "%command.dspmsgQsysopr.title%",
+        "category": "FS Actions",
+        "icon": "$(mail)"
+      },
+      {
+        "command": "vscode-ibmi-fs.dspobjDetailed",
+        "title": "%command.dspobjDetailed.title%",
+        "category": "FS Actions",
+        "icon": "$(info)"
       }
     ],
     "menus": {

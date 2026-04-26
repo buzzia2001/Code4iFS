@@ -27,6 +27,8 @@
   "command.sendToMessageQueue.title": "Nachricht an Nachrichtenwarteschlange senden",
   "command.uploadSavf.title": "Datei hochladen und speichern",
   "command.dspobj.title": "Objektinformationen",
+  "command.dspmsgQsysopr.title": "QSYSOPR-Nachrichten anzeigen",
+  "command.dspobjDetailed.title": "Objektinformationen anzeigen (Detailliert)",
   "description": "Dateisystemanbieter für IBM i QSYS",
   "displayName": "IBM i FileSystem"
 }

@@ -65,71 +65,172 @@ export async function activate(context: vscode.ExtensionContext) {
   fsActionsStatusBar.show();
   context.subscriptions.push(fsActionsStatusBar);
 
-  // Comando per mostrare il menu FS Actions
+  // Command to show the FS Actions menu
   context.subscriptions.push(
     vscode.commands.registerCommand('vscode-ibmi-fs.showFsActionsMenu', async () => {
       const action = await vscode.window.showQuickPick(
         [
-          { label: 'WRKJOB', description: 'Work with Job' }
+          { label: 'WRKJOB', description: 'Work with Job' },
+          { label: 'DSPMSG QSYSOPR', description: 'Display System Operator Messages' },
+          { label: 'DSPOBJ', description: 'Display Object Information' },
+          { label: 'DSPOBJ Detailed', description: 'Display Object Information (single input)' }
         ],
-        { placeHolder: 'Seleziona un\'azione FS' }
+        { placeHolder: 'Select an FS action' }
       );
 
       if (action?.label === 'WRKJOB') {
         vscode.commands.executeCommand('vscode-ibmi-fs.wrkjob');
+      } else if (action?.label === 'DSPMSG QSYSOPR') {
+        vscode.commands.executeCommand('vscode-ibmi-fs.dspmsgQsysopr');
+      } else if (action?.label === 'DSPOBJ') {
+        vscode.commands.executeCommand('vscode-ibmi-fs.dspobj');
+      } else if (action?.label === 'DSPOBJ Detailed') {
+        vscode.commands.executeCommand('vscode-ibmi-fs.dspobjDetailed');
       }
     })
   );
 
-  // Comando WRKJOB - Esempio di output in sola lettura con ricerca funzionante
+  // WRKJOB Command - Example of read-only output with working search
   context.subscriptions.push(
     vscode.commands.registerCommand('vscode-ibmi-fs.wrkjob', async () => {
-      // Crea il contenuto
+      // Create the content
       const output = [
         '╔════════════════════════════════════════════════════════════╗',
-        '║           Work with Job - Esempio                         ║',
+        '║           Work with Job - Example                         ║',
         '╚════════════════════════════════════════════════════════════╝',
         '',
-        'Ciao mondo!',
+        'Hello world!',
         '',
-        'Questo è un esempio di visualizzazione in sola lettura.',
-        'Il contenuto è statico e non può essere modificato.',
+        'This is an example of read-only display.',
+        'The content is static and cannot be modified.',
         '',
-        '💡 Suggerimento: Premi Ctrl+F (Cmd+F su Mac) per cercare nel testo',
+        '💡 Tip: Press Ctrl+F (Cmd+F on Mac) to search in the text',
         '',
         '────────────────────────────────────────────────────────────',
-        'Output del comando:',
+        'Command output:',
         '────────────────────────────────────────────────────────────',
         '',
-        'Ciao mondo!',
-        'Questa è una tab in sola lettura.',
-        'Non puoi modificare questo testo.',
+        'Hello world!',
+        'This is a read-only tab.',
+        'You cannot modify this text.',
         '',
-        'Prova a cercare la parola "mondo" o "sola lettura".',
-        'La funzione di ricerca è completamente abilitata!',
+        'Try searching for the word "world" or "read-only".',
+        'The search function is fully enabled!',
         '',
-        'Puoi anche cercare:',
-        '  - "ciao"',
-        '  - "esempio"',
-        '  - "comando"',
-        '  - qualsiasi altra parola presente in questo documento',
+        'You can also search for:',
+        '  - "hello"',
+        '  - "example"',
+        '  - "command"',
+        '  - any other word present in this document',
         '',
         '════════════════════════════════════════════════════════════',
-        'Fine del documento',
+        'End of document',
         '════════════════════════════════════════════════════════════'
       ];
 
-      // Metadata opzionale
+      // Optional metadata
       const metadata = {
-        'Comando': 'WRKJOB',
-        'Data': new Date().toLocaleString('it-IT'),
-        'Stato': 'Completato'
+        'Command': 'WRKJOB',
+        'Date': new Date().toLocaleString('en-US'),
+        'Status': 'Completed'
       };
 
-      // Mostra il documento in sola lettura
+      // Show the read-only document
       await DocumentManager.showOutput('WRKJOB - Output', output, metadata);
       
-      vscode.window.showInformationMessage('Tab in sola lettura aperta! Usa Ctrl+F per cercare nel testo.');
+      vscode.window.showInformationMessage('Read-only tab opened! Use Ctrl+F to search in the text.');
+    })
+  );
+
+  // DSPMSG QSYSOPR Command - Opens the QSYSOPR message queue
+  context.subscriptions.push(
+    vscode.commands.registerCommand('vscode-ibmi-fs.dspmsgQsysopr', async () => {
+      try {
+        // Create the URI for the QSYSOPR message queue in QSYS library
+        const uri = vscode.Uri.parse('member:/QSYS/QSYSOPR.MSGQ');
+        
+        // Open the file with the custom editor
+        await vscode.commands.executeCommand('vscode.openWith', uri, 'vscode-ibmi-fs.editor');
+      } catch (error) {
+        vscode.window.showErrorMessage(vscode.l10n.t('Failed to open QSYSOPR: {0}', String(error)));
+      }
+    })
+  );
+
+  // DSPOBJ Detailed Command - Display object with custom editor using same prompts as DSPOBJ
+  context.subscriptions.push(
+    vscode.commands.registerCommand('vscode-ibmi-fs.dspobjDetailed', async () => {
+      // Prompt for library name
+      const library = await vscode.window.showInputBox({
+        prompt: vscode.l10n.t("Enter library name"),
+        placeHolder: vscode.l10n.t("Library"),
+        validateInput: (value) => {
+          if (!value || value.trim().length === 0) {
+            return vscode.l10n.t("Library name is required");
+          }
+          if (value.length > 10) {
+            return vscode.l10n.t("Library name must be 10 characters or less");
+          }
+          return null;
+        }
+      });
+
+      if (!library) {
+        return;
+      }
+
+      // Prompt for object name
+      const name = await vscode.window.showInputBox({
+        prompt: vscode.l10n.t("Enter object name"),
+        placeHolder: vscode.l10n.t("Object name"),
+        validateInput: (value) => {
+          if (!value || value.trim().length === 0) {
+            return vscode.l10n.t("Object name is required");
+          }
+          if (value.length > 10) {
+            return vscode.l10n.t("Object name must be 10 characters or less");
+          }
+          return null;
+        }
+      });
+
+      if (!name) {
+        return;
+      }
+
+      // Prompt for object type
+      const type = await vscode.window.showInputBox({
+        prompt: vscode.l10n.t("Enter object type (e.g., *PGM, *FILE, *DTAARA)"),
+        placeHolder: vscode.l10n.t("*PGM"),
+        value: "*PGM",
+        validateInput: (value) => {
+          if (!value || value.trim().length === 0) {
+            return vscode.l10n.t("Object type is required");
+          }
+          if (!value.startsWith('*')) {
+            return vscode.l10n.t("Object type must start with *");
+          }
+          return null;
+        }
+      });
+
+      if (!type) {
+        return;
+      }
+
+      try {
+        // Remove asterisk from type for URI
+        const typeExt = type.substring(1).toUpperCase();
+        const libraryUpper = library.toUpperCase();
+        const nameUpper = name.toUpperCase();
+
+        // Create URI and open with custom editor
+        const uriPath = `member:/${libraryUpper}/${nameUpper}.${typeExt}`;
+        const uri = vscode.Uri.parse(uriPath);
+        await vscode.commands.executeCommand('vscode.openWith', uri, 'vscode-ibmi-fs.editor');
+      } catch (error) {
+        vscode.window.showErrorMessage(vscode.l10n.t('Failed to display object information: {0}', String(error)));
+      }
     })
   );
 
