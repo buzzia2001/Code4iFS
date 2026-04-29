@@ -54,18 +54,166 @@ export async function activate(context: vscode.ExtensionContext) {
   UserIndexActions.register(context);
   DspobjActions.register(context);
 
-  // === FS Actions Status Bar ===
+  // Register refresh command
+  context.subscriptions.push(
+    vscode.commands.registerCommand('vscode-ibmi-fs.refreshObject', async () => {
+      // Get the active custom editor URI from the tab
+      const activeTab = vscode.window.tabGroups.activeTabGroup.activeTab;
+      if (activeTab?.input) {
+        const input = activeTab.input as any;
+        if (input.uri) {
+          await ObjectProvider.refreshDocument(input.uri);
+          vscode.window.showInformationMessage(vscode.l10n.t('Object refreshed successfully'));
+        }
+      }
+    })
+  );
+
+  // Register object actions menu command
+  context.subscriptions.push(
+    vscode.commands.registerCommand('vscode-ibmi-fs.showObjectActions', async () => {
+      const activeTab = vscode.window.tabGroups.activeTabGroup.activeTab;
+      if (!activeTab?.input) {
+        return;
+      }
+
+      const input = activeTab.input as any;
+      const uri = input.uri as vscode.Uri;
+      if (!uri) {
+        return;
+      }
+
+      // Determine object type from URI
+      const ext = uri.path.split('.').pop()?.toUpperCase();
+      const fragment = uri.fragment?.toUpperCase();
+      
+      // Build actions list based on object type
+      const actions: { label: string; command: string; icon?: string }[] = [];
+
+      switch (ext) {
+        case 'DTAQ':
+          actions.push(
+            { label: vscode.l10n.t('Send data to Data Queue'), command: 'vscode-ibmi-fs.sendToDataQueue', icon: '$(mail)' },
+            { label: vscode.l10n.t('Clear Data Queue'), command: 'vscode-ibmi-fs.clearDataQueue', icon: '$(trash)' }
+          );
+          break;
+
+        case 'FILE':
+          if (fragment === 'SAVF') {
+            actions.push(
+              { label: vscode.l10n.t('Download Save File'), command: 'vscode-ibmi-fs.downloadSavf', icon: '$(cloud-download)' },
+              { label: vscode.l10n.t('Upload Save File'), command: 'vscode-ibmi-fs.uploadSavf', icon: '$(cloud-upload)' },
+              { label: vscode.l10n.t('Save to Save File'), command: 'vscode-ibmi-fs.savf', icon: '$(save)' },
+              { label: vscode.l10n.t('Restore from Save File'), command: 'vscode-ibmi-fs.restore', icon: '$(issue-reopened)' },
+              { label: vscode.l10n.t('Clear Save File'), command: 'vscode-ibmi-fs.clearSavf', icon: '$(trash)' }
+            );
+          } else if (fragment === 'PF' || fragment === 'LF') {
+            actions.push(
+              { label: vscode.l10n.t('Query file'), command: 'vscode-ibmi-fs.QueryFile', icon: '$(file-code)' }
+            );
+          }
+          break;
+
+        case 'JOBQ':
+          actions.push(
+            { label: vscode.l10n.t('Hold Job Queue'), command: 'vscode-ibmi-fs.HldJobq', icon: '$(primitive-square)' },
+            { label: vscode.l10n.t('Release Job Queue'), command: 'vscode-ibmi-fs.RlsJobq', icon: '$(play)' },
+            { label: vscode.l10n.t('Clear Job Queue'), command: 'vscode-ibmi-fs.ClrJobq', icon: '$(trash)' }
+          );
+          break;
+
+        case 'OUTQ':
+          actions.push(
+            { label: vscode.l10n.t('Hold Output Queue'), command: 'vscode-ibmi-fs.HldOutq', icon: '$(primitive-square)' },
+            { label: vscode.l10n.t('Release Output Queue'), command: 'vscode-ibmi-fs.RlsOutq', icon: '$(play)' },
+            { label: vscode.l10n.t('Clear Output Queue'), command: 'vscode-ibmi-fs.ClrOutq', icon: '$(trash)' },
+            { label: vscode.l10n.t('Delete old spools'), command: 'vscode-ibmi-fs.DelOldSpool', icon: '$(calendar)' },
+            { label: vscode.l10n.t('Manage Writer'), command: 'vscode-ibmi-fs.MngWtr', icon: '$(debug-disconnect)' }
+          );
+          break;
+
+        case 'DTAARA':
+          actions.push(
+            { label: vscode.l10n.t('Change DTAARA'), command: 'vscode-ibmi-fs.ChgDtaara', icon: '$(edit)' }
+          );
+          break;
+
+        case 'USRSPC':
+          actions.push(
+            { label: vscode.l10n.t('Change USRSPC'), command: 'vscode-ibmi-fs.chgUsrspc', icon: '$(edit)' }
+          );
+          break;
+
+        case 'BNDDIR':
+          actions.push(
+            { label: vscode.l10n.t('Add Binding Directory Entry'), command: 'vscode-ibmi-fs.Addbnddire', icon: '$(plus)' }
+          );
+          break;
+
+        case 'JRN':
+          actions.push(
+            { label: vscode.l10n.t('Generate new Journal Receiver'), command: 'vscode-ibmi-fs.GenJrnRcv', icon: '$(git-pull-request-new-changes)' },
+            { label: vscode.l10n.t('Display Journal'), command: 'vscode-ibmi-fs.DspJrn', icon: '$(file-code)' }
+          );
+          break;
+
+        case 'SBSD':
+          actions.push(
+            { label: vscode.l10n.t('Start Subsystem'), command: 'vscode-ibmi-fs.StrSbs', icon: '$(play)' },
+            { label: vscode.l10n.t('End Subsystem'), command: 'vscode-ibmi-fs.EndSbs', icon: '$(primitive-square)' }
+          );
+          break;
+
+        case 'MSGQ':
+          actions.push(
+            { label: vscode.l10n.t('Send Message to Message Queue'), command: 'vscode-ibmi-fs.sendToMessageQueue', icon: '$(mail)' },
+            { label: vscode.l10n.t('Clear Message Queue'), command: 'vscode-ibmi-fs.clearMessageQueue', icon: '$(trash)' }
+          );
+          break;
+
+        case 'USRIDX':
+          actions.push(
+            { label: vscode.l10n.t('Add User Index Entry'), command: 'vscode-ibmi-fs.AddUsridxEntry', icon: '$(plus)' },
+            { label: vscode.l10n.t('Remove User Index Entry'), command: 'vscode-ibmi-fs.RmvUsridxEntry', icon: '$(trash)' }
+          );
+          break;
+      }
+
+      if (actions.length === 0) {
+        vscode.window.showInformationMessage(vscode.l10n.t('No actions available for this object type'));
+        return;
+      }
+
+      // Show quick pick menu
+      const selected = await vscode.window.showQuickPick(
+        actions.map(a => ({
+          label: a.icon ? `${a.icon} ${a.label}` : a.label,
+          command: a.command
+        })),
+        {
+          placeHolder: vscode.l10n.t('Select an action')
+        }
+      );
+
+      if (selected) {
+        // Execute the command with the URI as parameter
+        await vscode.commands.executeCommand(selected.command, uri);
+      }
+    })
+  );
+
+  // === FS Quick Start Status Bar ===
   const fsActionsStatusBar = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Left,
     100
   );
-  fsActionsStatusBar.text = "$(tools) FS Actions";
-  fsActionsStatusBar.tooltip = "IBM i FS Actions";
+  fsActionsStatusBar.text = "$(tools) FS Quick Start";
+  fsActionsStatusBar.tooltip = "IBM i FS Quick Start";
   fsActionsStatusBar.command = "vscode-ibmi-fs.showFsActionsMenu";
   fsActionsStatusBar.show();
   context.subscriptions.push(fsActionsStatusBar);
 
-  // Command to show the FS Actions menu
+  // Command to show the FS Quick Start menu
   context.subscriptions.push(
     vscode.commands.registerCommand('vscode-ibmi-fs.showFsActionsMenu', async () => {
       const action = await vscode.window.showQuickPick(

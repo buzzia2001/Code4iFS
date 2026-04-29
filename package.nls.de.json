@@ -29,6 +29,8 @@
   "command.dspobj.title": "Objektinformationen",
   "command.dspmsgQsysopr.title": "QSYSOPR-Nachrichten anzeigen",
   "command.dspobjDetailed.title": "Objektinformationen anzeigen (Detailliert)",
+  "command.refreshObject.title": "Objekt aktualisieren",
+  "command.showObjectActions.title": "Objektaktionen",
   "description": "Dateisystemanbieter für IBM i QSYS",
   "displayName": "IBM i FileSystem"
 }

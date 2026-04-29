@@ -16,7 +16,7 @@
  * @module messagequeue
  */
 
-import Base from "./base";
+import Base from "../base";
 import { IBMiObject, CommandResult } from '@halcyontech/vscode-ibmi-types';
 import { getInstance } from "../ibmi";
 import { Tools } from '@halcyontech/vscode-ibmi-types/api/Tools';

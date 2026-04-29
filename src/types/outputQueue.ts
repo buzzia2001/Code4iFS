@@ -16,7 +16,7 @@
  * @module outputqueue
  */
 
-import Base from "./base";
+import Base from "../base";
 import { IBMiObject, CommandResult } from '@halcyontech/vscode-ibmi-types';
 import { Components } from "../webviewToolkit";
 import { getInstance } from "../ibmi";
@@ -24,6 +24,7 @@ import { getColumns, generateDetailTable, generateFastTable, FastTableColumn, ge
 import { Tools } from '@halcyontech/vscode-ibmi-types/api/Tools';
 import * as vscode from 'vscode';
 import ObjectProvider from '../objectProvider';
+import { SpoolOperations } from '../commonOperations';
 
 /**
  * Namespace containing actions for Output Queue objects
@@ -452,28 +453,36 @@ export namespace OutputQueueActions {
    * @returns True if successful, false otherwise
    */
   export const delSpool = async (item: Entry): Promise<boolean> => {
-    if (await vscode.window.showWarningMessage(vscode.l10n.t("Are you sure you want to delete spool {0} number {1} of job {2}?", item.spoolname, String(item.nbr), item.job), { modal: true }, vscode.l10n.t("Delete spool"))) {
-      const ibmi = getInstance();
-      const connection = ibmi?.getConnection();
-      if (connection) {
-        const cmdrun: CommandResult = await connection.runCommand({
-          command: `QSYS/DLTSPLF FILE(${item.spoolname}) JOB(${item.job}) SPLNBR(${item.nbr})`,
-          environment: `ile`
-        });
+    return SpoolOperations.deleteSpool({
+      spoolname: item.spoolname,
+      nbr: item.nbr,
+      job: item.job
+    });
+  };
 
-        if (cmdrun.code === 0) {
-          vscode.window.showInformationMessage(vscode.l10n.t("Spool deleted."));
-          return true;
-        } else {
-          vscode.window.showErrorMessage(vscode.l10n.t("Unable to delete selected spool:\n{0}", String(cmdrun.stderr)));
-          return false;
-        }
+  /**
+   * Delete a specific spooled file
+   * @param item - The spool entry to delete
+   * @returns True if successful, false otherwise
+   */
+  export const openSpool = async (item: Entry): Promise<boolean> => {
+    const ibmi = getInstance();
+    const connection = ibmi?.getConnection();
+    if (connection) {
+      const cmdrun: CommandResult = await connection.runCommand({
+        command: `QSYS/DLTSPLF FILE(${item.spoolname}) JOB(${item.job}) SPLNBR(${item.nbr})`,
+        environment: `ile`
+      });
+
+      if (cmdrun.code === 0) {
+        vscode.window.showInformationMessage(vscode.l10n.t("Spool deleted."));
+        return true;
       } else {
-        vscode.window.showErrorMessage(vscode.l10n.t("Not connected to IBM i"));
+        vscode.window.showErrorMessage(vscode.l10n.t("Unable to delete selected spool:\n{0}", String(cmdrun.stderr)));
         return false;
       }
-    }
-    else {
+    } else {
+      vscode.window.showErrorMessage(vscode.l10n.t("Not connected to IBM i"));
       return false;
     }
   };
@@ -484,90 +493,11 @@ export namespace OutputQueueActions {
    * @returns True if successful, false otherwise
    */
   export const genPdf = async (item: Entry): Promise<boolean> => {
-    let name = 'generatedPDF'
-
-    const ibmi = getInstance();
-    const connection = ibmi?.getConnection();
-    if (connection) {
-      // Check if GENERATE_PDF function exists
-      const functionExists = await checkTableFunctionExists(connection, 'SYSTOOLS', 'GENERATE_PDF');
-      if (!functionExists) {
-        vscode.window.showErrorMessage(vscode.l10n.t("SQL {0} {1}/{2} not found. Please check your IBM i system.", "FUNCTION", "SYSTOOLS", "GENERATE_PDF"));
-        return false;
-      }
-    } else {
-      vscode.window.showErrorMessage(vscode.l10n.t("Not connected to IBM i"));
-      return false;
-    }
-
-    const saveLocation = await vscode.window.showSaveDialog({
-      title: vscode.l10n.t("Download PDF File"),
-      defaultUri: vscode.Uri.file(`${name}.pdf`),
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      filters: { 'PDF': ["pdf"] }
-    });
-
-    if (saveLocation) {
-      const result = await vscode.window.withProgress({
-        location: vscode.ProgressLocation.Notification,
-        title: vscode.l10n.t("PDF generation")
-      }, async progress => {
-        const result = {
-          successful: true,
-          error: ''
-        };
-
-        const ibmi = getInstance();
-        const connection = ibmi?.getConnection();
-        if (connection) {
-          const config = connection.getConfig();
-          const tempRemotePath = config.tempDir + '/' + item.job.replaceAll("/", "_") + '_' + item.spoolname + '_' + item.nbr + '.pdf';
-
-          progress.report({ message: vscode.l10n.t("Generating PDF...") });
-          const genpdf = await connection.runSQL(` select SYSTOOLS.GENERATE_PDF(
-                            JOB_NAME            => '${item.job}',
-                            SPOOLED_FILE_NAME   => '${item.spoolname}',
-                            SPOOLED_FILE_NUMBER => '${item.nbr}',
-                            PATH_NAME           => '${tempRemotePath}') as SENT
-                            FROM SYSIBM.SYSDUMMY1`);
-
-          if (genpdf[0].SENT === 1) {
-            try {
-              progress.report({ message: vscode.l10n.t("Downloading PDF...") });
-              await connection.client.getFile(saveLocation.fsPath, tempRemotePath);
-            } catch (error) {
-              result.successful = false;
-              result.error = String(error);
-            }
-            finally {
-              await connection.runCommand({
-                command: `rm -f ${tempRemotePath}`,
-                environment: `pase`
-              });
-            }
-          }
-          else {
-            result.successful = false;
-            result.error = vscode.l10n.t("PDF generation failed");
-          }
-        } else {
-          result.successful = false;
-          result.error = vscode.l10n.t("Not connected to IBM i");
-        }
-        return result;
-      });
-
-      if (result.successful) {
-        vscode.window.showInformationMessage(vscode.l10n.t("PDF successfully generated."));
-        return true;
-      }
-      else {
-        vscode.window.showErrorMessage(vscode.l10n.t("Failed to generate PDF"));
-        return false;
-      }
-    } else {
-      return false;
-    }
+    return SpoolOperations.downloadSpoolAsPdf({
+      spoolname: item.spoolname,
+      nbr: item.nbr,
+      job: item.job
+    }, 'generatedPDF');
   };
 }
 
