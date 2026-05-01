@@ -205,6 +205,22 @@ export namespace WrksplfActions {
         }
       );
 
+      // Add refresh button to the webview toolbar
+      const refreshDisposable = vscode.commands.registerCommand('vscode-ibmi-fs.refreshWrksplf', async () => {
+        const newResult = await fetchSpooledFiles(searchTerm, currentPage, itemsPerPage);
+        if (newResult) {
+          spooledFiles = newResult.entries;
+          totalItems = newResult.totalItems;
+          panel.webview.html = generatePage(generateTableHtml());
+          vscode.window.showInformationMessage(vscode.l10n.t('Spooled files refreshed successfully'));
+        }
+      });
+
+      // Clean up the command when panel is disposed
+      panel.onDidDispose(() => {
+        refreshDisposable.dispose();
+      });
+
       // Define columns for spooled files table
       const spoolColumns: FastTableColumn<Entry>[] = [
         { title: vscode.l10n.t("Name"), width: "1fr", getValue: e => e.spoolname },
@@ -222,9 +238,9 @@ export namespace WrksplfActions {
           getValue: e => {
             // Encode spool entry as URL parameter for action handlers
             const arg = encodeURIComponent(JSON.stringify(e));
-            return `<vscode-button appearance="primary" href="action:openSpool?entry=${arg}">${vscode.l10n.t("Open")} 📄</vscode-button>
-                  <vscode-button appearance="primary" href="action:genPdf?entry=${arg}">${vscode.l10n.t("Download")} ⬇️</vscode-button>
-                  <vscode-button appearance="secondary" href="action:delSpool?entry=${arg}">${vscode.l10n.t("Delete")} ❌</vscode-button>`;
+            return `<vscode-button appearance="primary" href="action:openSpool?entry=${arg}">${vscode.l10n.t("Open")}</vscode-button>
+                  <vscode-button appearance="primary" href="action:genPdf?entry=${arg}">${vscode.l10n.t("Download")}</vscode-button>
+                  <vscode-button appearance="secondary" href="action:delSpool?entry=${arg}">${vscode.l10n.t("Delete")}</vscode-button>`;
           }
         }
       ];
