@@ -17,6 +17,7 @@ import { MessageQueueActions } from './types/messageQueue';
 import { MessageFileActions } from './types/messageFile';
 import { FileActions } from './types/file';
 import { UserIndexActions } from './types/userIndex';
+import { JobDescriptionActions } from './types/jobDescription';
 import { DspobjActions } from './views/dspobj';
 import { WrksplfActions } from './views/wrksplf';
 import { WrkjobActions } from './views/wrkjob';
@@ -58,6 +59,7 @@ export async function activate(context: vscode.ExtensionContext) {
   MessageFileActions.register(context);
   FileActions.register(context);
   UserIndexActions.register(context);
+  JobDescriptionActions.register(context);
   DspobjActions.register(context);
   WrksplfActions.register(context);
   WrkjobActions.register(context);
@@ -191,6 +193,12 @@ export async function activate(context: vscode.ExtensionContext) {
           actions.push(
             { label: vscode.l10n.t('Add User Index Entry'), command: 'vscode-ibmi-fs.AddUsridxEntry', icon: '$(plus)' },
             { label: vscode.l10n.t('Remove User Index Entry'), command: 'vscode-ibmi-fs.RmvUsridxEntry', icon: '$(trash)' }
+          );
+          break;
+
+        case 'JOBD':
+          actions.push(
+            { label: vscode.l10n.t('Change Job Description'), command: 'vscode-ibmi-fs.changeJobd', icon: '$(edit)' }
           );
           break;
       }

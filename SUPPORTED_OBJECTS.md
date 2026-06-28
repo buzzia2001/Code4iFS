@@ -20,7 +20,7 @@ This document provides detailed information about all IBM i object types support
 | Service Programs | `*SRVPGM` | ❌ No | ✅ Yes |
 | Modules | `*MODULE` | ❌ No | ✅ Yes |
 | Commands | `*CMD` | ❌ No | ✅ Yes |
-| Job Descriptions | `*JOBD` | ❌ No | ✅ Yes |
+| Job Descriptions | `*JOBD` | ✅ Yes | ❌ No |
 | Journal Receivers | `*JRNRCV` | ❌ No | ✅ Yes |
 | Journals | `*JRN` | ✅ Yes | ❌ No |
 | DDM Files | `*DDMF` | ❌ No | ✅ Yes |
@@ -255,7 +255,9 @@ Command objects define IBM i CL commands.
 Job descriptions define the runtime environment for batch jobs.
 
 **Available Actions:**
-- ❌ None (View only)
+- ✏️ **Change** - Change job description parameters
+
+> ‼️ **Actions requirements:** Message file actions require "Bob Cozzi's CL Prompter and Formatter for IBM i" extension
 
 **Display Features:**
 - 📊 Display job description attributes
