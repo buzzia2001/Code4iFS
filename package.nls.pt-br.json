@@ -5,6 +5,7 @@
   "command.chgUsrspc.title": "Alterar USRSPC",
   "command.clearDataQueue.title": "Limpar fila de dados",
   "command.clearMessageQueue.title": "Limpar fila de mensagens",
+  "command.addMsgd.title": "Adicionar descrição de mensagem",
   "command.clearSavf.title": "Limpar arquivo de salvamento (Save File)",
   "command.ClrJobq.title": "Limpar fila de trabalhos",
   "command.ClrOutq.title": "Limpar fila de saída",

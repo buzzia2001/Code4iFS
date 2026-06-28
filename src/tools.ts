@@ -19,6 +19,8 @@ export interface FastTableColumn<T> {
   cellClass?: string;
   /** If true, this column will be collapsible (hidden by default, shown in code format when expanded) */
   collapsible?: boolean;
+  /** If true, shows the column title in the table header even when collapsible (default: false) */
+  showTitle?: boolean;
 }
 
 /**
@@ -622,8 +624,9 @@ export function generateFastTable<T>(options: FastTableOptions<T>): string {
           return `<vscode-table-cell style="width: ${columnsArray[index]}; text-align: center;"></vscode-table-cell>`;
         } else {
           // Show button to open modal if content exists
+          const colIndex = collapsibleIndices.indexOf(index);
           return `<vscode-table-cell style="width: ${columnsArray[index]}; text-align: center;">
-            <vscode-button appearance="secondary" class="show-modal-btn" data-row="${rowIndex}" aria-label="Show details">
+            <vscode-button appearance="secondary" class="show-modal-btn" data-row="${rowIndex}" data-col="${colIndex}" aria-label="Show details">
               +
             </vscode-button>
           </vscode-table-cell>`;
@@ -643,9 +646,9 @@ export function generateFastTable<T>(options: FastTableOptions<T>): string {
   // Generate table header with width styles (skip collapsible columns)
   const headerCells = columns.map((col, index) => {
     if (col.collapsible) {
-      // For collapsible columns, show empty header cell with just the width
       const widthStyle = columnsArray[index] !== 'auto' ? ` style="width: ${columnsArray[index]};"` : '';
-      return `<vscode-table-header-cell${widthStyle}></vscode-table-header-cell>`;
+      const title = col.showTitle ? escapeHtml(col.title) : '';
+      return `<vscode-table-header-cell${widthStyle}>${title}</vscode-table-header-cell>`;
     }
     const widthStyle = columnsArray[index] !== 'auto' ? ` style="width: ${columnsArray[index]};"` : '';
     return `<vscode-table-header-cell${widthStyle}>${escapeHtml(col.title)}</vscode-table-header-cell>`;
@@ -1172,11 +1175,14 @@ export function generateFastTable<T>(options: FastTableOptions<T>): string {
     const modalClose = document.getElementById('modal-close');
     const modalOverlay = modal ? modal.querySelector('.modal-overlay') : null;
 
-    function openModal(rowIndex) {
+    function openModal(rowIndex, colIndex) {
       if (!modal || !modalTitle || !modalBody) return;
-      
-      const data = collapsibleDataArray[rowIndex];
-      if (!data || data.length === 0) return;
+
+      const rowData = collapsibleDataArray[rowIndex];
+      if (!rowData || rowData.length === 0) return;
+
+      const item = rowData[colIndex];
+      if (!item) return;
 
       // Helper function to escape HTML
       const escapeHtml = (text) => {
@@ -1185,18 +1191,8 @@ export function generateFastTable<T>(options: FastTableOptions<T>): string {
         return div.innerHTML;
       };
 
-      // Set modal content
-      const content = data.map(item => \`
-        <div style="margin-bottom: 16px;">
-          <div style="font-weight: 600; margin-bottom: 8px; color: var(--vscode-foreground); font-size: 1em;">
-            \${escapeHtml(item.title)}:
-          </div>
-          <pre>\${escapeHtml(item.value || '')}</pre>
-        </div>
-      \`).join('');
-
-      modalTitle.textContent = data.length === 1 ? data[0].title : 'Details';
-      modalBody.innerHTML = content;
+      modalTitle.textContent = item.title;
+      modalBody.innerHTML = \`<pre>\${escapeHtml(item.value || '')}</pre>\`;
       modal.style.display = 'flex';
     }
 
@@ -1212,7 +1208,8 @@ export function generateFastTable<T>(options: FastTableOptions<T>): string {
       button.addEventListener('click', (e) => {
         e.stopPropagation();
         const rowIndex = parseInt(button.getAttribute('data-row'));
-        openModal(rowIndex);
+        const colIndex = parseInt(button.getAttribute('data-col'));
+        openModal(rowIndex, colIndex);
       });
     });
 

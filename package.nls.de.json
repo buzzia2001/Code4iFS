@@ -5,6 +5,7 @@
   "command.chgUsrspc.title": "USRSPC ändern",
   "command.clearDataQueue.title": "Datenwarteschlange löschen",
   "command.clearMessageQueue.title": "Nachrichtenwarteschlange löschen",
+  "command.addMsgd.title": "Nachrichtenbeschreibung hinzufügen",
   "command.clearSavf.title": "Savefile löschen",
   "command.ClrJobq.title": "Job-Warteschlange löschen",
   "command.ClrOutq.title": "Ausgabewarteschlange löschen",

@@ -5,6 +5,7 @@
   "command.chgUsrspc.title": "Modifier USRSPC",
   "command.clearDataQueue.title": "Vider la file de données",
   "command.clearMessageQueue.title": "Vider la file de messages",
+  "command.addMsgd.title": "Ajouter une description de message",
   "command.clearSavf.title": "Vider le fichier de sauvegarde",
   "command.ClrJobq.title": "Vider la file de travaux",
   "command.ClrOutq.title": "Vider la file de sortie",

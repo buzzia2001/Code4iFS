@@ -5,6 +5,7 @@
   "command.chgUsrspc.title": "變更 USRSPC",
   "command.clearDataQueue.title": "清除資料佇列",
   "command.clearMessageQueue.title": "清除訊息佇列",
+  "command.addMsgd.title": "新增訊息描述",
   "command.clearSavf.title": "清除保存檔（Save File）",
   "command.ClrJobq.title": "清除作業佇列",
   "command.ClrOutq.title": "清除輸出佇列",

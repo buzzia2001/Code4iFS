@@ -5,6 +5,7 @@
   "command.chgUsrspc.title": "Modifica USRSPC",
   "command.clearDataQueue.title": "Svuota Data Queue",
   "command.clearMessageQueue.title": "Svuota Message Queue",
+  "command.addMsgd.title": "Aggiungi descrizione messaggio",
   "command.clearSavf.title": "Svuota Save File",
   "command.ClrJobq.title": "Svuota Job Queue",
   "command.ClrOutq.title": "Svuota Output Queue",

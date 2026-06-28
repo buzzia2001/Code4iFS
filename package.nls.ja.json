@@ -5,6 +5,7 @@
   "command.chgUsrspc.title": "USRSPC を変更",
   "command.clearDataQueue.title": "データ・キューをクリア",
   "command.clearMessageQueue.title": "メッセージ・キューをクリア",
+  "command.addMsgd.title": "メッセージ記述を追加",
   "command.clearSavf.title": "セーブ・ファイルをクリア",
   "command.ClrJobq.title": "ジョブ・キューをクリア",
   "command.ClrOutq.title": "出力キューをクリア",

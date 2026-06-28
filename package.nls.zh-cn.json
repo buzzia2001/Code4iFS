@@ -5,6 +5,7 @@
   "command.chgUsrspc.title": "更改 USRSPC",
   "command.clearDataQueue.title": "清空数据队列",
   "command.clearMessageQueue.title": "清空消息队列",
+  "command.addMsgd.title": "添加消息描述",
   "command.clearSavf.title": "清空保存文件（Save File）",
   "command.ClrJobq.title": "清空作业队列",
   "command.ClrOutq.title": "清空输出队列",

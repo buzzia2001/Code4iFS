@@ -17,7 +17,7 @@ The extension supports **22 different IBM i object types** with comprehensive vi
 | 📋 Job Queues | `*JOBQ` | ✅ |
 | 💾 User Spaces | `*USRSPC` | ✅ |
 | 🔑 User Indexes | `*USRIDX` | ✅ |
-| 📄 Message Files | `*MSGF` | ❌ |
+| 📄 Message Files | `*MSGF` | ✅ |
 | 💬 Message Queues | `*MSGQ` | ✅ |
 | 🔗 Binding Directories | `*BNDDIR` | ✅ |
 | 🔧 Programs | `*PGM` | ❌ |

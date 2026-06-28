@@ -243,6 +243,12 @@
         "icon": "$(mail)"
       },
       {
+        "command": "vscode-ibmi-fs.addMsgd",
+        "title": "%command.addMsgd.title%",
+        "category": "IBM i FS",
+        "icon": "$(plus)"
+      },
+      {
         "command": "vscode-ibmi-fs.QueryFile",
         "title": "%command.QueryFile.title%",
         "category": "IBM i FS",
@@ -304,7 +310,7 @@
         "command": "vscode-ibmi-fs.showObjectActions",
         "title": "%command.showObjectActions.title%",
         "category": "IBM i FS",
-        "icon": "$(menu)"
+        "icon": "$(terminal-view-icon)"
       },
       {
         "command": "vscode-ibmi-fs.refreshWrksplf",
@@ -476,6 +482,11 @@
           "group": "1_modification@2"
         },
         {
+          "command": "vscode-ibmi-fs.addMsgd",
+          "when": "resourceExtname == .MSGF && activeCustomEditorId == vscode-ibmi-fs.editor",
+          "group": "1_modification@1"
+        },
+        {
           "command": "vscode-ibmi-fs.QueryFile",
           "when": "resourceExtname == .FILE && activeCustomEditorId == vscode-ibmi-fs.editor && (ibmiFileType == 'PF' || ibmiFileType == 'LF')",
           "group": "1_modification@6"
@@ -633,6 +644,10 @@
         },
         {
           "command": "vscode-ibmi-fs.sendToMessageQueue",
+          "when": "never"
+        },
+        {
+          "command": "vscode-ibmi-fs.addMsgd",
           "when": "never"
         },
         {

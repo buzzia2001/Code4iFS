@@ -14,6 +14,7 @@ import { BindingDirectoryActions } from './types/bindingDirectory';
 import { JournalActions } from './types/journal';
 import { SubsystemActions } from './types/subsystemDescription';
 import { MessageQueueActions } from './types/messageQueue';
+import { MessageFileActions } from './types/messageFile';
 import { FileActions } from './types/file';
 import { UserIndexActions } from './types/userIndex';
 import { DspobjActions } from './views/dspobj';
@@ -54,6 +55,7 @@ export async function activate(context: vscode.ExtensionContext) {
   JournalActions.register(context);
   SubsystemActions.register(context);
   MessageQueueActions.register(context);
+  MessageFileActions.register(context);
   FileActions.register(context);
   UserIndexActions.register(context);
   DspobjActions.register(context);
@@ -176,6 +178,12 @@ export async function activate(context: vscode.ExtensionContext) {
           actions.push(
             { label: vscode.l10n.t('Send Message to Message Queue'), command: 'vscode-ibmi-fs.sendToMessageQueue', icon: '$(mail)' },
             { label: vscode.l10n.t('Clear Message Queue'), command: 'vscode-ibmi-fs.clearMessageQueue', icon: '$(trash)' }
+          );
+          break;
+
+        case 'MSGF':
+          actions.push(
+            { label: vscode.l10n.t('Add Message Description'), command: 'vscode-ibmi-fs.addMsgd', icon: '$(plus)' },
           );
           break;
 

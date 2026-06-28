@@ -19,6 +19,7 @@
   "command.chgUsrspc.title": "Change USRSPC",
   "command.clearDataQueue.title": "Clear Data Queue",
   "command.clearMessageQueue.title": "Clear Message Queue",
+  "command.addMsgd.title": "Add Message Description",
   "command.clearSavf.title": "Clear Save File",
   "command.downloadSavf.title": "Download Save File",
   "command.restore.title": "Restore from Save File",

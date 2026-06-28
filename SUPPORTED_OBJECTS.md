@@ -13,7 +13,7 @@ This document provides detailed information about all IBM i object types support
 | Job Queues | `*JOBQ` | ✅ Yes | ❌ No |
 | User Spaces | `*USRSPC` | ✅ Yes | ❌ No |
 | User Indexes | `*USRIDX` | ✅ Yes | ❌ No |
-| Message Files | `*MSGF` | ❌ No | ✅ Yes |
+| Message Files | `*MSGF` | ✅ Yes | ❌ No |
 | Message Queues | `*MSGQ` | ✅ Yes | ❌ No |
 | Binding Directories | `*BNDDIR` | ✅ Yes | ❌ No |
 | Programs | `*PGM` | ❌ No | ✅ Yes |
@@ -150,7 +150,11 @@ User indexes provide fast keyed access to data stored in user-defined entries, s
 Message files contain predefined messages used by IBM i applications.
 
 **Available Actions:**
-- ❌ None (View only)
+- ➕ **Add Entry** - Add new Message Description
+- ✏️ **Change Entry** - Change Message Description
+- 🗑️ **Remove Entry** - Remove Message Description
+
+> ‼️ **Actions requirements:** Message file actions require "Bob Cozzi's CL Prompter and Formatter for IBM i" extension
 
 **Display Features:**
 - 📊 Display all messages in the message file
