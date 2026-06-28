@@ -78,7 +78,7 @@ export namespace JobDescriptionActions {
         const { CLPrompter } = clPrompterExt.exports;
         let command = await CLPrompter(`QSYS/CHGJOBD JOBD(${item.library}/${item.name})`);
 
-        if (await vscode.window.showWarningMessage(vscode.l10n.t("Are you sure you want to change Job Description {0}/{1}?", item.library, item.name), { modal: true }, vscode.l10n.t("Clear MSGQ"))) {
+        if (await vscode.window.showWarningMessage(vscode.l10n.t("Are you sure you want to change Job Description {0}/{1}?", item.library, item.name), { modal: true }, vscode.l10n.t("Change JOBD"))) {
           const cmdrun: CommandResult = await connection.runCommand({
             command: command,
             environment: `ile`
