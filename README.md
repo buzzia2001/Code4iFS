@@ -24,7 +24,7 @@ The extension supports **22 different IBM i object types** with comprehensive vi
 | 🔧 Service Programs | `*SRVPGM` | ❌ |
 | 🧩 Modules | `*MODULE` | ❌ |
 | ⚙️ Commands | `*CMD` | ❌ |
-| 📄 Job Descriptions | `*JOBD` | ❌ |
+| 📄 Job Descriptions | `*JOBD` | ✅ |
 | 📓 Journal Receivers | `*JRNRCV` | ❌ |
 | 📓 Journals | `*JRN` | ✅ |
 | 🌐 DDM Files | `*DDMF` | ❌ |

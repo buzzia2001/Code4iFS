@@ -18,8 +18,92 @@
 
 import Base from "./base";
 import { getInstance } from "../ibmi";
-import { getColumns, generateDetailTable, executeSqlIfExists } from "../tools";
+import { getColumns, generateDetailTable, executeSqlIfExists, getProtected } from "../tools";
 import * as vscode from 'vscode';
+import { CommandResult, IBMiObject } from "@halcyontech/vscode-ibmi-types";
+import ObjectProvider from "../objectProvider";
+
+/**
+ * Namespace containing actions for Journal objects
+ */
+export namespace JobDescriptionActions {
+  /**
+   * Register Journal commands with VS Code
+   * @param context - Extension context for command registration
+   */
+  export const register = (context: vscode.ExtensionContext) => {
+    context.subscriptions.push(
+      vscode.commands.registerCommand("vscode-ibmi-fs.changeJobd", async (item?: IBMiObject | vscode.Uri) => {
+        if (item instanceof vscode.Uri) {
+          const parts = item.path.split('/');
+          if (parts.length >= 3) {
+            const library = parts[1];
+            const nameWithExt = parts[2];
+            const name = nameWithExt.substring(0, nameWithExt.lastIndexOf('.'));
+            const result = await chgJobd({ library, name } as IBMiObject);
+            if (result) {
+              await ObjectProvider.refreshDocument(item);
+            }
+            return result;
+          }
+        } else if (item) {
+          return chgJobd(item);
+        }
+      })
+    );
+  };
+
+  /**
+   * Change a Job Description
+   * @param item - The Job Description object or IBMiObject
+   * @returns True if successful, false otherwise
+   */
+  export const chgJobd = async (item: IBMiObject | Jobd): Promise<boolean> => {
+
+    const ibmi = getInstance();
+    const connection = ibmi?.getConnection();
+    if (connection) {
+
+      if(getProtected(connection,item.library)){
+        vscode.window.showWarningMessage(vscode.l10n.t("Unable to perform object action because it is protected."));
+        return false;
+      }
+
+      const clPrompterExt = vscode.extensions.getExtension('CozziResearch.clprompter');
+      if (clPrompterExt) {
+        // Use CLPrompter for advanced prompting
+        if (!clPrompterExt.isActive) {
+          await clPrompterExt.activate();
+        }
+        const { CLPrompter } = clPrompterExt.exports;
+        let command = await CLPrompter(`QSYS/CHGJOBD JOBD(${item.library}/${item.name})`);
+
+        if (await vscode.window.showWarningMessage(vscode.l10n.t("Are you sure you want to change Job Description {0}/{1}?", item.library, item.name), { modal: true }, vscode.l10n.t("Clear MSGQ"))) {
+          const cmdrun: CommandResult = await connection.runCommand({
+            command: command,
+            environment: `ile`
+          });
+
+          if (cmdrun.code === 0) {
+            vscode.window.showInformationMessage(vscode.l10n.t("Job description changed successfully."));
+            return true;
+          } else {
+            vscode.window.showErrorMessage(vscode.l10n.t("Unable to change job description:\n{0}", String(cmdrun.stderr)));
+            return false;
+          }
+        } else {
+          return false;
+        }
+      } else {
+        vscode.window.showErrorMessage(vscode.l10n.t(`This action requires "Bob Cozzi's CL Prompter and Formatter for IBM i" extension`));
+        return false;
+      }
+    } else {
+      vscode.window.showErrorMessage(vscode.l10n.t("Not connected to IBM i"));
+      return false;
+    }
+  }
+}
 
 /**
  * Job Description (JOBD) object class
