@@ -356,6 +356,10 @@ export function generateFastTable<T>(options: FastTableOptions<T>): string {
     }
 
     const strValue = String(value).trim();
+    if (strValue === 'null' || strValue === 'undefined' || strValue === '') {
+      return EMPTY_VALUE_PLACEHOLDER;
+    }
+
     return formatYesNoOrNumber(strValue, false) ?? String(value);
   };
 
@@ -363,8 +367,11 @@ export function generateFastTable<T>(options: FastTableOptions<T>): string {
   // column becomes too narrow to read. Columns get an actual fixed size
   // instead of a percentage, so resizing the window never squashes them —
   // the wrapper scrolls horizontally instead (see .table-scroll-wrapper below).
-  const MIN_PX_PER_FR = 80;
-  const MIN_COLUMN_WIDTH = 100;
+  // The floor is intentionally low relative to MIN_PX_PER_FR so 'fr' weights
+  // stay visually distinct instead of every small-weight column clamping to
+  // the same floor value; wide tables (many columns) are expected to scroll.
+  const MIN_PX_PER_FR = 140;
+  const MIN_COLUMN_WIDTH = 90;
 
   // Fixed pixel width for each column
   const columnMinWidths = columns.map(col => {
