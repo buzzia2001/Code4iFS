@@ -20,7 +20,8 @@
 
 import Base from "./base";
 import { getInstance } from "../ibmi";
-import { getColumns, generateDetailTable, executeSqlIfExists } from "../tools";
+import { getColumns, executeSqlIfExists } from "../tools";
+import { generateDetailTable } from "../frontendTables";
 import * as vscode from 'vscode';
 
 /**

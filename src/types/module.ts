@@ -23,7 +23,8 @@ import * as vscode from 'vscode';
 import { Components } from "../webviewToolkit";
 import Base from "./base";
 import { getInstance } from '../ibmi';
-import { getColumns, generateDetailTable, FastTableColumn, generateFastTable, generateRandomString } from "../tools";
+import { getColumns, generateRandomString } from "../tools";
+import { generateDetailTable, FastTableColumn, generateFastTable } from "../frontendTables";
 
 /**
  * Interface representing a procedure entry in a module
