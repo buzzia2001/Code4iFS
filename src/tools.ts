@@ -574,27 +574,32 @@ export function generateFastTable<T>(options: FastTableOptions<T>): string {
     return escapeHtml(value);
   };
 
-  // Calculate total fr units
-  const totalFr = columns.reduce((sum, col) => {
-    if (col.width && col.width.includes('fr')) {
-      const frValue = parseFloat(col.width.replace('fr', ''));
-      return sum + frValue;
+  // Fixed pixel width assigned per 1fr unit, and an absolute floor so no
+  // column becomes too narrow to read. Columns get an actual fixed size
+  // instead of a percentage, so resizing the window never squashes them —
+  // the wrapper scrolls horizontally instead (see .table-scroll-wrapper below).
+  const MIN_PX_PER_FR = 80;
+  const MIN_COLUMN_WIDTH = 100;
+
+  // Fixed pixel width for each column
+  const columnMinWidths = columns.map(col => {
+    if (!col.width) return MIN_COLUMN_WIDTH;
+    if (col.width.includes('fr')) {
+      return Math.max(MIN_COLUMN_WIDTH, parseFloat(col.width) * MIN_PX_PER_FR);
     }
-    return sum;
-  }, 0);
-  
-  // Generate columns array for vscode-table, converting fr to percentages
-  const columnsArray = columns.map(col => {
-    if (!col.width) return 'auto';
-    
-    if (col.width.includes('fr') && totalFr > 0) {
-      const frValue = parseFloat(col.width.replace('fr', ''));
-      const percentage = (frValue / totalFr) * 100;
-      return `${percentage.toFixed(2)}%`;
+    if (col.width.endsWith('px')) {
+      return Math.max(MIN_COLUMN_WIDTH, parseFloat(col.width));
     }
-    
-    return col.width;
+    // For %, minmax(), or other values we can't easily measure — use the floor
+    return MIN_COLUMN_WIDTH;
   });
+
+  // Total fixed width for the whole table. When the viewport is narrower than
+  // this, the wrapper scrolls horizontally instead of squashing columns.
+  const tableMinWidth = columnMinWidths.reduce((sum, w) => sum + w, 0);
+
+  // Fixed pixel width per column, passed to the vscode-table 'columns' attribute
+  const columnsArray = columnMinWidths.map(w => `${w}px`);
 
   // Check if there are any collapsible columns
   const hasCollapsibleColumns = columns.some(col => col.collapsible);
@@ -745,7 +750,13 @@ export function generateFastTable<T>(options: FastTableOptions<T>): string {
       width: 80px;
     }
     
+    .table-scroll-wrapper {
+      overflow-x: auto;
+      width: 100%;
+    }
+
     vscode-table {
+      min-width: ${tableMinWidth}px;
       width: 100%;
       border-radius: 6px;
       overflow: hidden;
@@ -942,37 +953,38 @@ export function generateFastTable<T>(options: FastTableOptions<T>): string {
     ` : ''}
     
     ${data.length > 0 ? `
-      <vscode-table
-        id="data-table"
-        bordered-rows
-        columns='${JSON.stringify(columnsArray)}'
-        aria-label="${escapeHtml(title)}">
-        <vscode-table-header>
-          ${headerCells}
-        </vscode-table-header>
-        <vscode-table-body id="table-body">
-          ${rows}
-        </vscode-table-body>
-      </vscode-table>
+      <div class="table-scroll-wrapper">
+        <vscode-table
+          id="data-table"
+          bordered-rows
+          columns='${JSON.stringify(columnsArray)}'
+          aria-label="${escapeHtml(title)}">
+          <vscode-table-header>
+            ${headerCells}
+          </vscode-table-header>
+          <vscode-table-body id="table-body">
+            ${rows}
+          </vscode-table-body>
+        </vscode-table>
 
-      ${hasCollapsibleColumns ? `
-      <!-- Modal for collapsible content -->
-      <div id="collapsible-modal" class="modal" style="display: none;">
-        <div class="modal-overlay"></div>
-        <div class="modal-content">
-          <div class="modal-header">
-            <h3 id="modal-title"></h3>
-            <vscode-button appearance="icon" id="modal-close" aria-label="Close">
-              <span class="codicon codicon-close"></span>
-            </vscode-button>
+        ${hasCollapsibleColumns ? `
+        <!-- Modal for collapsible content -->
+        <div id="collapsible-modal" class="modal" style="display: none;">
+          <div class="modal-overlay"></div>
+          <div class="modal-content">
+            <div class="modal-header">
+              <h3 id="modal-title"></h3>
+              <vscode-button appearance="icon" id="modal-close" aria-label="Close">
+                <span class="codicon codicon-close"></span>
+              </vscode-button>
+            </div>
+            <div class="modal-body" id="modal-body"></div>
           </div>
-          <div class="modal-body" id="modal-body"></div>
         </div>
-      </div>
-      ` : ''}
+        ` : ''}
 
-      ${enablePagination ? `
-      <div class="pagination-controls">
+        ${enablePagination ? `
+        <div class="pagination-controls">
         <div class="pagination-info" id="pagination-info${tableId ? `-${tableId}` : ''}"></div>
         <div class="pagination-buttons">
           <vscode-button id="first-page${tableId ? `-${tableId}` : ''}" appearance="icon" aria-label="First page">
@@ -1000,7 +1012,8 @@ export function generateFastTable<T>(options: FastTableOptions<T>): string {
           </vscode-button>
         </div>
       </div>
-      ` : ''}
+        ` : ''}
+      </div>
     ` : `
       <div class="empty-state">
         <p>${escapeHtml(emptyMessage)}</p>
