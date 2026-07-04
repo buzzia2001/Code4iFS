@@ -9,7 +9,8 @@
 
 import * as vscode from 'vscode';
 import { getInstance } from '../ibmi';
-import { FastTableColumn, generateFastTable, executeSqlIfExists, checkTableFunctionExists } from "../tools";
+import { executeSqlIfExists, checkTableFunctionExists } from "../tools";
+import { FastTableColumn, generateFastTable } from "../frontendTables";
 import { generatePage } from "../webviewToolkit";
 import { JobOperations } from '../commonOperations';
 

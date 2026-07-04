@@ -26,7 +26,8 @@
 import { CommandResult } from "@halcyontech/vscode-ibmi-types";
 import * as vscode from 'vscode';
 import { getInstance } from "../ibmi";
-import { checkProcedureExists, checkTableFunctionExists, checkViewExists, generateDetailTable } from "../tools";
+import { checkProcedureExists, checkTableFunctionExists, checkViewExists } from "../tools";
+import { generateDetailTable } from "../frontendTables";
 import Base from "./base";
 
 /**

@@ -22,7 +22,8 @@ import * as vscode from 'vscode';
 import { Components } from "../webviewToolkit";
 import Base from "./base";
 import { getInstance } from '../ibmi';
-import { getColumns, generateDetailTable, FastTableColumn, generateFastTable, executeSqlIfExists } from "../tools";
+import { getColumns, executeSqlIfExists } from "../tools";
+import { generateDetailTable, FastTableColumn, generateFastTable } from "../frontendTables";
 
 /**
  * Interface representing a bound module within a program

@@ -18,7 +18,7 @@ import {
   CommandResult
 } from "@halcyontech/vscode-ibmi-types";
 import * as vscode from "vscode";
-import { generateDetailTable } from "../tools";
+import { generateDetailTable } from "../frontendTables";
 import Base from "./base";
 import { getInstance } from "../ibmi";
 

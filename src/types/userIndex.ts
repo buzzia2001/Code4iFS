@@ -22,7 +22,8 @@ import * as vscode from 'vscode';
 import { Components } from "../webviewToolkit";
 import Base from "./base";
 import { getInstance } from '../ibmi';
-import { getColumns, generateDetailTable, FastTableColumn, generateFastTable, getProtected, executeSqlIfExists } from "../tools";
+import { getColumns, getProtected, executeSqlIfExists } from "../tools";
+import { generateDetailTable, FastTableColumn, generateFastTable } from "../frontendTables";
 import ObjectProvider from '../objectProvider';
 
 /**
