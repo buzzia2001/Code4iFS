@@ -10,7 +10,7 @@
 import * as vscode from 'vscode';
 import { getInstance } from '../ibmi';
 import { executeSqlIfExists, checkTableFunctionExists } from "../tools";
-import { FastTableColumn, generateFastTable } from "../frontendTables";
+import { FastTableColumn, generateFastTable } from "../ibmi";
 import { generatePage } from "../webviewToolkit";
 import { SpoolOperations } from '../commonOperations';
 

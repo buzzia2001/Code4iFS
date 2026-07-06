@@ -17,7 +17,7 @@ import Base from "./base";
 import { IBMiObject, CommandResult } from '@halcyontech/vscode-ibmi-types';
 import { getInstance } from "../ibmi";
 import { getColumns, getProtected, executeSqlIfExists } from "../tools";
-import { generateDetailTable } from "../frontendTables";
+import { generateDetailTable } from "../ibmi";
 import { Tools } from '@halcyontech/vscode-ibmi-types/api/Tools';
 import * as vscode from 'vscode';
 import ObjectProvider from '../objectProvider';

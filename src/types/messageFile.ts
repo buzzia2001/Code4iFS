@@ -20,7 +20,7 @@ import { CommandResult, IBMiObject } from '@halcyontech/vscode-ibmi-types';
 import { getInstance } from "../ibmi";
 import { Tools } from '@halcyontech/vscode-ibmi-types/api/Tools';
 import { executeSqlIfExists, getProtected } from "../tools";
-import { generateFastTable, FastTableColumn } from "../frontendTables";
+import { generateFastTable, FastTableColumn } from "../ibmi";
 import * as vscode from 'vscode';
 import ObjectProvider from "../objectProvider";
 

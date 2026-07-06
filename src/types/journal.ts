@@ -19,7 +19,7 @@ import { IBMiObject, CommandResult } from '@halcyontech/vscode-ibmi-types';
 import { Components } from "../webviewToolkit";
 import { getInstance } from "../ibmi";
 import { getColumns, getProtected, checkTableFunctionExists, executeSqlIfExists } from "../tools";
-import { generateDetailTable, generateFastTable, FastTableColumn } from "../frontendTables";
+import { generateDetailTable, generateFastTable, FastTableColumn } from "../ibmi";
 import { DocumentManager } from "../documentManager";
 import { Tools } from '@halcyontech/vscode-ibmi-types/api/Tools';
 import * as vscode from 'vscode';

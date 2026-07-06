@@ -23,7 +23,7 @@ import { Components } from "../webviewToolkit";
 import Base from "./base";
 import { getInstance } from '../ibmi';
 import { getProtected, executeSqlIfExists } from "../tools";
-import { FastTableColumn, generateFastTable } from "../frontendTables";
+import { FastTableColumn, generateFastTable } from "../ibmi";
 import ObjectProvider from '../objectProvider';
 
 /**
