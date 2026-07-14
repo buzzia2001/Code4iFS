@@ -239,7 +239,7 @@ export namespace MessageQueueActions {
     }
 
     const cmdrun: CommandResult = await connection.runCommand({
-      command: `QSYS/SNDRPY MSGKEY(${msgkey}) MSGQ(${library}/${name}) RPY('${replyText}') RMV(*NO)`,
+      command: `QSYS/SNDRPY MSGKEY(x'${msgkey}') MSGQ(${library}/${name}) RPY('${replyText}') RMV(*NO)`,
       environment: `ile`
     });
 
