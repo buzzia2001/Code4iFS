@@ -23,7 +23,7 @@ import * as vscode from "vscode";
 import { getInstance } from "../ibmi";
 import ObjectProvider from '../objectProvider';
 import { executeSqlIfExists, getProtected, getQSYSObjectPath } from "../tools";
-import { FastTableColumn, generateDetailTable, generateFastTable } from "../frontendTables";
+import { FastTableColumn, generateDetailTable, generateFastTable } from "../ibmi";
 import { Components } from "../webviewToolkit";
 import Base from "./base";
 import path = require("path");

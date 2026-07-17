@@ -24,7 +24,7 @@ import { Components } from "../webviewToolkit";
 import Base from "./base";
 import { getInstance } from '../ibmi';
 import { getColumns, generateRandomString } from "../tools";
-import { generateDetailTable, FastTableColumn, generateFastTable } from "../frontendTables";
+import { generateDetailTable, FastTableColumn, generateFastTable } from "../ibmi";
 
 /**
  * Interface representing a procedure entry in a module

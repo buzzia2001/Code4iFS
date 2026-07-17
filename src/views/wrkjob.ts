@@ -16,7 +16,7 @@
 import * as vscode from 'vscode';
 import { getInstance } from '../ibmi';
 import { executeSqlIfExists } from "../tools";
-import { FastTableColumn, generateFastTable, generateDetailTable } from "../frontendTables";
+import { FastTableColumn, generateFastTable, generateDetailTable } from "../ibmi";
 import { generatePage, Components } from "../webviewToolkit";
 import { JobOperations, SpoolOperations } from '../commonOperations';
 import { Tools } from '@halcyontech/vscode-ibmi-types/api/Tools';

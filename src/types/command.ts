@@ -21,7 +21,7 @@
 import Base from "./base";
 import { getInstance } from "../ibmi";
 import { getColumns, executeSqlIfExists } from "../tools";
-import { generateDetailTable } from "../frontendTables";
+import { generateDetailTable } from "../ibmi";
 import * as vscode from 'vscode';
 
 /**
