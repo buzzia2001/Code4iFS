@@ -5,7 +5,7 @@ import * as vscode from 'vscode';
 import ObjectProvider from './objectProvider';
 import { DataQueueActions } from './types/dataQueue';
 import { SaveFileActions } from './types/saveFile';
-import { getInstance, loadBase } from './ibmi';
+import { getInstance, getVSCodeTools, loadBase } from './ibmi';
 import { DataAreaActions } from './types/dataArea';
 import { JobQueueActions } from './types/jobQueue';
 import { OutputQueueActions } from './types/outputQueue';
@@ -241,6 +241,9 @@ export async function activate(context: vscode.ExtensionContext) {
     const ibmi = getInstance();
     const connection = ibmi?.getConnection();
     if (connection) {
+      // Match the status bar colour picked in the connection settings, just like the core does
+      const config = connection.getConfig();
+      fsActionsStatusBar.color = getVSCodeTools()?.parseStatusBarColor(config?.statusBarColor);
       fsActionsStatusBar.show();
     } else {
       fsActionsStatusBar.hide();
@@ -259,6 +262,14 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push({
     dispose: () => clearInterval(connectionCheckInterval)
   });
+
+  // Re-apply the status bar colour immediately when the connection settings change, just like the core does
+  const base = loadBase();
+  if (base) {
+    context.subscriptions.push(
+      base.onCodeForIBMiConfigurationChange("connectionSettings", () => updateFsActionsStatusBar())
+    );
+  }
 
   // Listen for extension changes (when Code for IBM i connects/disconnects)
   context.subscriptions.push(

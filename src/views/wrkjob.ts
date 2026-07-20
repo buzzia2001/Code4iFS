@@ -682,15 +682,48 @@ export namespace WrkjobActions {
   };
 
   /**
-   * Fetch joblog
+   * Fetch joblog with server-side search and pagination
+   * @param jobName - The job to read the log from
+   * @param searchTerm - Optional search filter
+   * @param page - Page number (1-based)
+   * @param itemsPerPage - Number of messages per page
+   * @returns The page of entries plus the total count matching the search
    */
-  const fetchJoblog = async (jobName: string): Promise<JoblogEntry[]> => {
+  const fetchJoblog = async (jobName: string, searchTerm: string = '', page: number = 1, itemsPerPage: number = 50): Promise<{ entries: JoblogEntry[]; total: number }> => {
     const ibmi = getInstance();
     const connection = ibmi?.getConnection();
-    
+
     if (!connection) {
-      return [];
+      return { entries: [], total: 0 };
     }
+
+    // Build the search filter (shared between the count and the data query)
+    let whereClause = '';
+    if (searchTerm && searchTerm.trim() !== '' && searchTerm.trim() !== '-') {
+      const searchPattern = `%${searchTerm.trim().toUpperCase()}%`;
+      whereClause = ` WHERE (
+        UPPER(MESSAGE_ID) LIKE '${searchPattern}' OR
+        UPPER(MESSAGE_TEXT) LIKE '${searchPattern}' OR
+        UPPER(MESSAGE_SECOND_LEVEL_TEXT) LIKE '${searchPattern}' OR
+        UPPER(FROM_LIBRARY CONCAT '/' CONCAT FROM_PROGRAM) LIKE '${searchPattern}'
+      )`;
+    }
+
+    // Total count for pagination
+    const countRows = await executeSqlIfExists(
+      connection,
+      `SELECT COUNT(*) AS TOTAL FROM TABLE(QSYS2.JOBLOG_INFO('${jobName}'))${whereClause}`,
+      'QSYS2',
+      'JOBLOG_INFO',
+      'FUNCTION'
+    );
+
+    if (countRows === null) {
+      return { entries: [], total: 0 };
+    }
+
+    const total = countRows.length > 0 ? Number(countRows[0].TOTAL) : 0;
+    const offset = (page - 1) * itemsPerPage;
 
     const joblogRows = await executeSqlIfExists(
       connection,
@@ -701,18 +734,19 @@ export namespace WrkjobActions {
          FROM_LIBRARY CONCAT '/' CONCAT FROM_PROGRAM AS FROM_PROGRAM,
          MESSAGE_LIBRARY CONCAT '/' CONCAT MESSAGE_FILE AS MESSAGE_FILE,
          TO_CHAR(MESSAGE_TIMESTAMP, 'yyyy-mm-dd HH24:mi') AS MESSAGE_TIMESTAMP
-       FROM TABLE(QSYS2.JOBLOG_INFO('${jobName}'))
-       ORDER BY ORDINAL_POSITION DESC`,
+       FROM TABLE(QSYS2.JOBLOG_INFO('${jobName}'))${whereClause}
+       ORDER BY ORDINAL_POSITION DESC
+       LIMIT ${itemsPerPage} OFFSET ${offset}`,
       'QSYS2',
       'JOBLOG_INFO',
       'FUNCTION'
     );
 
     if (joblogRows === null) {
-      return [];
+      return { entries: [], total };
     }
 
-    return joblogRows.map((row: Tools.DB2Row): JoblogEntry => ({
+    const entries = joblogRows.map((row: Tools.DB2Row): JoblogEntry => ({
       msgid: String(row.MESSAGE_ID),
       msgtext: String(row.MESSAGE_TEXT),
       msgtext2: String(row.MESSAGE_SECOND_LEVEL_TEXT),
@@ -721,6 +755,8 @@ export namespace WrkjobActions {
       msgFile: String(row.MESSAGE_FILE),
       timestamp: String(row.MESSAGE_TIMESTAMP)
     }));
+
+    return { entries, total };
   };
 
   /**
@@ -736,21 +772,30 @@ export namespace WrkjobActions {
     }
 
     try {
+      // Server-side search/pagination state for the Job Log tab
+      let joblogSearchTerm = '';
+      let joblogPage = 1;
+      const joblogItemsPerPage = 50;
+      let joblogTotal = 0;
+
       // Fetch all data
       let jobInfo = await fetchJobInfo(jobName);
       if (!jobInfo || jobInfo.length === 0) {
         return false;
       }
 
-      let [callStack, locks, openFiles, spools, joblog, libraries, activationGroups] = await Promise.all([
+      let [callStack, locks, openFiles, spools, joblogResult, libraries, activationGroups] = await Promise.all([
         fetchCallStack(jobName),
         fetchLocks(jobName),
         fetchOpenFiles(jobName),
         fetchSpools(jobName),
-        fetchJoblog(jobName),
+        fetchJoblog(jobName, joblogSearchTerm, joblogPage, joblogItemsPerPage),
         fetchLibl(jobName),
         fetchActivationGroups(jobName)
       ]);
+
+      let joblog = joblogResult.entries;
+      joblogTotal = joblogResult.total;
 
       // Define columns for job info manually
       const columns = new Map<string, string>([
@@ -820,17 +865,18 @@ export namespace WrkjobActions {
         const newLocks = await fetchLocks(jobName);
         const newOpenFiles = await fetchOpenFiles(jobName);
         const newSpools = await fetchSpools(jobName);
-        const newJoblog = await fetchJoblog(jobName);
+        const newJoblog = await fetchJoblog(jobName, joblogSearchTerm, joblogPage, joblogItemsPerPage);
         const newLibraries = await fetchLibl(jobName);
         const newActivationGroups = await fetchActivationGroups(jobName);
-        
+
         if (newJobInfo && newCallStack && newLocks && newOpenFiles && newSpools && newJoblog) {
           jobInfo = newJobInfo;
           callStack = newCallStack;
           locks = newLocks;
           openFiles = newOpenFiles;
           spools = newSpools;
-          joblog = newJoblog;
+          joblog = newJoblog.entries;
+          joblogTotal = newJoblog.total;
           libraries = newLibraries;
           activationGroups = newActivationGroups;
           panel.webview.html = generatePage(generateContent());
@@ -1054,12 +1100,19 @@ export namespace WrkjobActions {
 
         const joblogHtml = generateFastTable({
           title: vscode.l10n.t("Job Log"),
-          subtitle: vscode.l10n.t("Total messages: {0}", String(joblog.length)),
+          subtitle: vscode.l10n.t("Total messages: {0}", String(joblogTotal)),
           columns: joblogColumns,
           data: joblog,
           stickyHeader: true,
           emptyMessage: vscode.l10n.t("No job log messages found."),
-          tableId: 'joblog-table'
+          tableId: 'joblog-table',
+          enableSearch: true,
+          searchPlaceholder: vscode.l10n.t("Search messages..."),
+          enablePagination: true,
+          itemsPerPage: joblogItemsPerPage,
+          totalItems: joblogTotal,
+          currentPage: joblogPage,
+          searchTerm: joblogSearchTerm
         });
 
         // Statistics tab (combines library list, call stack, locks, open files, spools)
@@ -1081,7 +1134,7 @@ export namespace WrkjobActions {
         return Components.panels([
           { title: vscode.l10n.t("Job Info"), content: jobInfoHtml },
           { title: vscode.l10n.t("Job Statistics"), content: statisticsHtml },
-          { title: vscode.l10n.t("Job Log"), content: joblogHtml, badge: joblog.length }
+          { title: vscode.l10n.t("Job Log"), content: joblogHtml, badge: joblogTotal }
         ]);
       };
 
@@ -1089,6 +1142,24 @@ export namespace WrkjobActions {
 
       // Handle messages from webview
       panel.webview.onDidReceiveMessage(async (message) => {
+        // Handle Job Log search / pagination (server-side)
+        if (message.command === 'search' || message.command === 'paginate') {
+          if (message.searchTerm !== undefined) {
+            joblogSearchTerm = message.searchTerm;
+          }
+          if (message.command === 'search') {
+            joblogPage = 1;
+          } else if (message.page !== undefined) {
+            joblogPage = Number(message.page);
+          }
+
+          const result = await fetchJoblog(jobName, joblogSearchTerm, joblogPage, joblogItemsPerPage);
+          joblog = result.entries;
+          joblogTotal = result.total;
+          panel.webview.html = generatePage(generateContent());
+          return;
+        }
+
         const href = message.href;
         if (!href) {
           return;
@@ -1163,17 +1234,18 @@ export namespace WrkjobActions {
           const newLocks = await fetchLocks(jobName);
           const newOpenFiles = await fetchOpenFiles(jobName);
           const newSpools = await fetchSpools(jobName);
-          const newJoblog = await fetchJoblog(jobName);
+          const newJoblog = await fetchJoblog(jobName, joblogSearchTerm, joblogPage, joblogItemsPerPage);
           const newLibraries = await fetchLibl(jobName);
           const newActivationGroups = await fetchActivationGroups(jobName);
-          
+
           if (newJobInfo && newCallStack && newLocks && newOpenFiles && newSpools && newJoblog) {
             jobInfo = newJobInfo;
             callStack = newCallStack;
             locks = newLocks;
             openFiles = newOpenFiles;
             spools = newSpools;
-            joblog = newJoblog;
+            joblog = newJoblog.entries;
+            joblogTotal = newJoblog.total;
             libraries = newLibraries;
             activationGroups = newActivationGroups;
             panel.webview.html = generatePage(generateContent());
